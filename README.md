@@ -12,6 +12,7 @@ Most note-taking apps are either too complex or too ugly. **SnapPad** hits the "
 
 * **Zero-Friction Auth:** Secure user registration and login using JWT (JSON Web Tokens).
 * **Rich Text Editor:** Custom-styled notes with Bold, Italic, Underline, and Blockquotes.
+* **Structured Content:** Support for bulleted (unordered) and numbered (ordered) lists to organize thoughts.
 * **Color-Coded Thoughts:** Integrated color picker to change font colors for better organization and visual flair.
 * **Auto-Save:** Powered by debounced API calls to ensure your thoughts are never lost.
 * **Responsive Design:** A mobile-first approach—write on your phone, review on your desktop.
