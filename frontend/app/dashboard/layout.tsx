@@ -3,8 +3,8 @@ import React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { noteService } from "@/lib/notes";
 import { Note } from "@/types";
-import { LogOut, Plus, StickyNote } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { LogOut, Plus, StickyNote, Trash2 } from "lucide-react";
+import { useRouter, useParams } from "next/navigation"; // Added useParams
 import { authService } from "@/lib/auth";
 
 export default function DashboardLayout({
@@ -13,6 +13,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const params = useParams(); // Get current note ID from URL
   const queryClient = useQueryClient();
 
   const { data: notes, isLoading } = useQuery({
@@ -24,14 +25,33 @@ export default function DashboardLayout({
     mutationFn: () => noteService.create(),
     onSuccess: (newNote) => {
       queryClient.invalidateQueries({ queryKey: ["notes"] });
-      // FIXED: Matches folder structure src/app/dashboard/[id]
       router.push(`/dashboard/${newNote.id}`);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => noteService.delete(id),
+    onSuccess: (_, deletedId) => {
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
+
+      // If we just deleted the note the user is currently looking at,
+      // redirect them back to the main dashboard.
+      if (Number(params.id) === deletedId) {
+        router.push("/dashboard");
+      }
     },
   });
 
   const handleLogout = () => {
     authService.logout();
     router.push("/login");
+  };
+
+  const handleDelete = (e: React.MouseEvent, id: number) => {
+    e.stopPropagation(); // Stop the click from opening the note
+    if (confirm("Are you sure you want to delete this note?")) {
+      deleteMutation.mutate(id);
+    }
   };
 
   return (
@@ -64,12 +84,26 @@ export default function DashboardLayout({
             <div
               key={note.id}
               onClick={() => router.push(`/dashboard/${note.id}`)}
-              className="p-3 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-700 rounded-md cursor-pointer transition-all flex justify-between items-center"
+              /* ADDED 'group' CLASS BELOW TO FIX THE HOVER PROBLEM */
+              className="p-3 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-700 rounded-md cursor-pointer transition-all flex justify-between items-center group"
             >
-              <span className="truncate">{note.title || "Untitled Note"}</span>
-              {note.is_pinned && (
-                <span className="text-blue-500 text-xs">📌</span>
-              )}
+              <span className="truncate flex-1">
+                {note.title || "Untitled Note"}
+              </span>
+
+              <div className="flex items-center gap-1">
+                {note.is_pinned && (
+                  <span className="text-blue-500 text-xs">📌</span>
+                )}
+
+                <button
+                  onClick={(e) => handleDelete(e, note.id)}
+                  className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-100 hover:text-red-600 rounded transition-all"
+                  title="Delete note"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
             </div>
           ))}
         </nav>
