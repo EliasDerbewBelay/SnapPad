@@ -1,10 +1,10 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { noteService } from "@/lib/notes";
 import { Note } from "@/types";
-import { LogOut, Plus, StickyNote, Trash2 } from "lucide-react";
-import { useRouter, useParams } from "next/navigation"; // Added useParams
+import { LogOut, Plus, StickyNote, Trash2, Search } from "lucide-react";
+import { useRouter, useParams } from "next/navigation";
 import { authService } from "@/lib/auth";
 
 export default function DashboardLayout({
@@ -12,13 +12,14 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
   const params = useParams(); // Get current note ID from URL
   const queryClient = useQueryClient();
 
   const { data: notes, isLoading } = useQuery({
-    queryKey: ["notes"],
-    queryFn: () => noteService.getAll(),
+    queryKey: ["notes", searchQuery],
+    queryFn: () => noteService.getAll(searchQuery),
   });
 
   const createMutation = useMutation({
@@ -71,6 +72,19 @@ export default function DashboardLayout({
             <Plus size={18} />
             {createMutation.isPending ? "Creating..." : "New Note"}
           </button>
+        </div>
+
+        <div className="px-4 mb-4 relative">
+          <div className="absolute inset-y-0 left-6 flex items-center pointer-events-none text-gray-400">
+            <Search size={16} />
+          </div>
+          <input
+            type="text"
+            placeholder="Search notes..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-gray-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+          />
         </div>
 
         <nav className="flex-1 px-4 space-y-1 overflow-y-auto mt-4">
