@@ -8,6 +8,7 @@ import { LogOut, Plus, StickyNote, Trash2, Search, Menu, X } from "lucide-react"
 import { useRouter, useParams } from "next/navigation";
 import { authService } from "@/lib/auth";
 
+
 export default function DashboardLayout({
   children,
 }: {

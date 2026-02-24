@@ -1,12 +1,8 @@
 import type { Metadata } from "next";
-import {
-  Geist,
-  Geist_Mono,
-  Inter,
-  Architects_Daughter,
-} from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/Providers";
+import { ThemeProvider } from "@/provider/theme-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,13 +12,6 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
-});
-
-const architectsDaughter = Architects_Daughter({
-  weight: "400", // This font only supports weight 400
-  subsets: ["latin"],
-  variable: "--font-architects", // Define a CSS variable name
-  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -38,11 +27,18 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${architectsDaughter.className} antialiased font-sans`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased font-sans`}
       >
-        <Providers>
-          <main className="min-h-screen">{children}</main>
-        </Providers>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Providers>
+            <main className="min-h-screen">{children}</main>
+          </Providers>
+        </ThemeProvider>
       </body>
     </html>
   );
