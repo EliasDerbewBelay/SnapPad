@@ -44,8 +44,7 @@ export default function LoginPage() {
             <span className="text-sm">Back to home</span>
           </Link>
 
-          <div className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-4 py-2 rounded-full text-sm font-medium">
-            <Sparkles className="w-4 h-4" />
+          <div className="inline-flex m-4 items-center gap-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-4 py-2 rounded-full text-sm font-medium">
             <span>Welcome back to SnapPad</span>
           </div>
 

@@ -1,9 +1,11 @@
+// simple-editor.scss
 @import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
 
 /* CSS Variables for theming */
 :root {
   /* Light mode variables */
-  --tt-toolbar-height: 44px;
+  --tt-toolbar-height: 48px;
+  --tt-mobile-toolbar-height: 56px;
   --tt-theme-text: #111827;
   --tt-theme-text-light: #4b5563;
   --tt-bg-color: #ffffff;
@@ -16,6 +18,7 @@
   --tt-code-text: #111827;
   --tt-blockquote-border: #d1d5db;
   --tt-hr-color: #e5e7eb;
+  --tt-selection-bg: rgba(37, 99, 235, 0.2);
 }
 
 /* Dark mode variables */
@@ -32,6 +35,21 @@
   --tt-code-text: #f3f4f6;
   --tt-blockquote-border: #4b5563;
   --tt-hr-color: #374151;
+  --tt-selection-bg: rgba(59, 130, 246, 0.2);
+}
+
+/* Base styles */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overscroll-behavior: none;
 }
 
 body {
@@ -41,29 +59,14 @@ body {
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
-  padding: 0;
-  margin: 0;
-  overscroll-behavior-y: none;
   transition:
     background-color 0.2s ease,
     color 0.2s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-html,
-body {
-  overscroll-behavior-x: none;
-  height: 100%;
-}
-
-html,
-body,
-#root,
-#app {
-  height: 100%;
-  background-color: var(--tt-bg-color);
-}
-
-/* Scrollbar styling */
+/* Scrollbar styling - Mobile first approach */
 ::-webkit-scrollbar {
   width: 0.25rem;
   height: 0.25rem;
@@ -83,51 +86,76 @@ body,
   background: transparent;
 }
 
-/* Editor base styles */
-.tiptap.ProseMirror {
-  font-family: "DM Sans", sans-serif;
-  height: 100%;
-  outline: none;
-}
-
-/* Editor wrapper */
+/* Editor wrapper - Mobile first */
 .simple-editor-wrapper {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100%;
-  overflow: auto;
+  min-height: 100%;
   background-color: var(--tt-bg-color);
   border: 1px solid var(--tt-border-color);
   border-radius: 0.75rem;
+  overflow: hidden;
   transition:
     background-color 0.2s ease,
     border-color 0.2s ease;
+
+  /* Tablet and up */
+  @media (min-width: 768px) {
+    border-radius: 1rem;
+  }
 }
 
-/* Editor content container */
+/* Editor content container - Mobile first */
 .simple-editor-content {
-  max-width: 648px;
-  width: 100%;
-  margin: 0 auto;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
   flex: 1;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
   background-color: var(--tt-bg-color);
   color: var(--tt-theme-text);
   transition:
     background-color 0.2s ease,
     color 0.2s ease;
+  -webkit-overflow-scrolling: touch;
 }
 
-.simple-editor-content .tiptap.ProseMirror.simple-editor {
-  flex: 1;
-  padding: 3rem 3rem 30vh;
+/* Tiptap Editor - Mobile first */
+.tiptap.ProseMirror {
+  font-family: "DM Sans", sans-serif;
+  height: 100%;
+  outline: none;
+  padding: 1rem 1rem 20vh;
   color: var(--tt-theme-text);
   background-color: var(--tt-bg-color);
+  font-size: 16px; /* Prevents zoom on mobile */
+  line-height: 1.5;
+  word-wrap: break-word;
+
+  /* Tablet */
+  @media (min-width: 640px) {
+    padding: 1.5rem 1.5rem 25vh;
+    font-size: 16px;
+  }
+
+  /* Desktop */
+  @media (min-width: 1024px) {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem 2rem 30vh;
+    font-size: 16px;
+  }
+
+  /* Large Desktop */
+  @media (min-width: 1440px) {
+    max-width: 900px;
+    padding: 2.5rem 2.5rem 30vh;
+  }
 }
 
-/* Typography styles */
-.simple-editor-content .tiptap.ProseMirror {
+/* Typography styles - Mobile first */
+.tiptap.ProseMirror {
   /* Headings */
   h1,
   h2,
@@ -137,28 +165,77 @@ body,
   h6 {
     color: var(--tt-theme-text);
     font-weight: 600;
-    line-height: 1.25;
-    margin-top: 1.5em;
+    line-height: 1.3;
+    margin-top: 1.25em;
     margin-bottom: 0.5em;
+
+    &:first-child {
+      margin-top: 0;
+    }
   }
 
   h1 {
-    font-size: 2.5rem;
+    font-size: 1.875rem; /* 30px */
+
+    @media (min-width: 640px) {
+      font-size: 2.25rem; /* 36px */
+    }
+
+    @media (min-width: 1024px) {
+      font-size: 2.5rem; /* 40px */
+    }
   }
+
   h2 {
-    font-size: 2rem;
+    font-size: 1.5rem; /* 24px */
+
+    @media (min-width: 640px) {
+      font-size: 1.875rem; /* 30px */
+    }
+
+    @media (min-width: 1024px) {
+      font-size: 2rem; /* 32px */
+    }
   }
+
   h3 {
-    font-size: 1.75rem;
+    font-size: 1.25rem; /* 20px */
+
+    @media (min-width: 640px) {
+      font-size: 1.5rem; /* 24px */
+    }
+
+    @media (min-width: 1024px) {
+      font-size: 1.75rem; /* 28px */
+    }
   }
+
   h4 {
-    font-size: 1.5rem;
+    font-size: 1.125rem; /* 18px */
+
+    @media (min-width: 640px) {
+      font-size: 1.25rem; /* 20px */
+    }
+
+    @media (min-width: 1024px) {
+      font-size: 1.5rem; /* 24px */
+    }
   }
+
   h5 {
-    font-size: 1.25rem;
+    font-size: 1rem; /* 16px */
+
+    @media (min-width: 640px) {
+      font-size: 1.125rem; /* 18px */
+    }
   }
+
   h6 {
-    font-size: 1rem;
+    font-size: 0.875rem; /* 14px */
+
+    @media (min-width: 640px) {
+      font-size: 1rem; /* 16px */
+    }
   }
 
   /* Paragraphs */
@@ -166,6 +243,11 @@ body,
     color: var(--tt-theme-text-light);
     line-height: 1.6;
     margin-bottom: 1.25em;
+    font-size: 1rem;
+
+    @media (min-width: 640px) {
+      font-size: 1rem;
+    }
   }
 
   /* Links */
@@ -178,9 +260,16 @@ body,
       transparent
     );
     transition: color 0.2s ease;
+    word-break: break-word;
 
     &:hover {
       color: var(--tt-primary-hover);
+    }
+
+    @media (hover: hover) {
+      &:hover {
+        text-decoration-color: var(--tt-primary-color);
+      }
     }
   }
 
@@ -188,8 +277,13 @@ body,
   ul,
   ol {
     color: var(--tt-theme-text-light);
-    padding-left: 1.5em;
+    padding-left: 1.25rem;
     margin-bottom: 1.25em;
+    font-size: 1rem;
+
+    @media (min-width: 640px) {
+      padding-left: 1.5rem;
+    }
 
     li {
       margin-bottom: 0.5em;
@@ -209,9 +303,32 @@ body,
       display: flex;
       align-items: flex-start;
       gap: 0.5rem;
+      margin-bottom: 0.75rem;
 
       label {
         margin-top: 0.25rem;
+        cursor: pointer;
+        flex-shrink: 0;
+
+        input[type="checkbox"] {
+          width: 1.125rem;
+          height: 1.125rem;
+          cursor: pointer;
+          border-radius: 0.25rem;
+          border: 2px solid var(--tt-border-color);
+          background-color: var(--tt-bg-color);
+          transition: all 0.2s ease;
+
+          &:checked {
+            background-color: var(--tt-primary-color);
+            border-color: var(--tt-primary-color);
+          }
+
+          @media (min-width: 640px) {
+            width: 1.25rem;
+            height: 1.25rem;
+          }
+        }
       }
 
       div {
@@ -227,6 +344,11 @@ body,
     margin: 1.5em 0;
     color: var(--tt-theme-text-light);
     font-style: italic;
+    font-size: 1rem;
+
+    @media (min-width: 640px) {
+      padding-left: 1.5rem;
+    }
   }
 
   /* Code */
@@ -234,12 +356,13 @@ body,
     background-color: var(--tt-code-bg);
     color: var(--tt-code-text);
     padding: 0.2em 0.4em;
-    border-radius: 0.25rem;
-    font-family: monospace;
+    border-radius: 0.375rem;
+    font-family: "JetBrains Mono", "Fira Code", monospace;
     font-size: 0.875em;
     transition:
       background-color 0.2s ease,
       color 0.2s ease;
+    word-break: break-word;
   }
 
   /* Code blocks */
@@ -251,11 +374,20 @@ body,
     overflow-x: auto;
     margin: 1.5em 0;
     border: 1px solid var(--tt-border-color);
+    -webkit-overflow-scrolling: touch;
 
     code {
       background-color: transparent;
       padding: 0;
       color: inherit;
+      font-size: 0.875rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+
+      @media (min-width: 640px) {
+        font-size: 0.875rem;
+        white-space: pre;
+      }
     }
   }
 
@@ -263,7 +395,11 @@ body,
   hr {
     border: none;
     border-top: 2px solid var(--tt-hr-color);
-    margin: 2em 0;
+    margin: 1.5em 0;
+
+    @media (min-width: 640px) {
+      margin: 2em 0;
+    }
   }
 
   /* Images */
@@ -272,9 +408,14 @@ body,
     height: auto;
     border-radius: 0.5rem;
     margin: 1.5em 0;
+    display: block;
+
+    &.ProseMirror-selectednode {
+      outline: 2px solid var(--tt-primary-color);
+    }
   }
 
-  /* Placeholder text */
+  /* Placeholder */
   .is-editor-empty:first-child::before,
   .is-empty::before {
     color: var(--tt-theme-text-light);
@@ -283,20 +424,51 @@ body,
     float: left;
     height: 0;
     pointer-events: none;
+    font-style: italic;
   }
 
   /* Selection */
   &::selection {
-    background-color: color-mix(
-      in srgb,
-      var(--tt-primary-color) 20%,
-      transparent
-    );
+    background-color: var(--tt-selection-bg);
+  }
+
+  /* Focus styles */
+  &:focus {
+    outline: none;
+  }
+
+  /* Table styles (if needed) */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5em 0;
+    overflow-x: auto;
+    display: block;
+
+    @media (min-width: 640px) {
+      display: table;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--tt-border-color);
+      padding: 0.5rem;
+      text-align: left;
+      color: var(--tt-theme-text-light);
+    }
+
+    th {
+      background-color: var(--tt-bg-secondary);
+      font-weight: 600;
+    }
   }
 }
 
-/* Toolbar styling */
+/* Toolbar - Mobile first */
 .tiptap-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
   background-color: var(--tt-bg-secondary);
   border-bottom: 1px solid var(--tt-border-color);
   padding: 0.5rem;
@@ -306,17 +478,67 @@ body,
   transition:
     background-color 0.2s ease,
     border-color 0.2s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  @media (min-width: 640px) {
+    padding: 0.5rem 0.75rem;
+    gap: 0.375rem;
+  }
+
+  @media (min-width: 1024px) {
+    padding: 0.5rem 1rem;
+    gap: 0.5rem;
+  }
+
+  .tiptap-toolbar-group {
+    display: flex;
+    gap: 0.125rem;
+    align-items: center;
+    flex-wrap: wrap;
+
+    @media (min-width: 640px) {
+      gap: 0.25rem;
+    }
+  }
+
+  .tiptap-toolbar-separator {
+    width: 1px;
+    height: 1.5rem;
+    background-color: var(--tt-border-color);
+    margin: 0 0.125rem;
+
+    @media (min-width: 640px) {
+      margin: 0 0.25rem;
+    }
+  }
 
   button {
     color: var(--tt-theme-text);
     background-color: transparent;
     border: none;
     border-radius: 0.375rem;
-    padding: 0.375rem;
+    padding: 0.5rem;
     cursor: pointer;
-    transition:
-      background-color 0.2s ease,
-      color 0.2s ease;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    min-height: 2rem;
+    font-size: 0.875rem;
+    touch-action: manipulation;
+
+    @media (min-width: 640px) {
+      padding: 0.375rem;
+      min-width: 2rem;
+      min-height: 2rem;
+    }
+
+    @media (min-width: 1024px) {
+      min-width: 2.25rem;
+      min-height: 2.25rem;
+    }
 
     &:hover {
       background-color: color-mix(
@@ -332,79 +554,315 @@ body,
         var(--tt-theme-text) 20%,
         transparent
       );
+      transform: scale(0.95);
     }
 
     &.is-active {
       background-color: var(--tt-primary-color);
       color: white;
     }
-  }
 
-  .tiptap-toolbar-group {
-    display: flex;
-    gap: 0.25rem;
-    align-items: center;
-  }
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
 
-  .tiptap-toolbar-separator {
-    width: 1px;
-    height: 1.5rem;
-    background-color: var(--tt-border-color);
-    margin: 0 0.25rem;
+    svg {
+      width: 1.25rem;
+      height: 1.25rem;
+
+      @media (min-width: 640px) {
+        width: 1.125rem;
+        height: 1.125rem;
+      }
+    }
   }
 }
 
-/* Responsive styles */
-@media screen and (max-width: 768px) {
-  .simple-editor-content .tiptap.ProseMirror.simple-editor {
-    padding: 2rem 2rem 20vh;
+/* Mobile-specific toolbar styles */
+@media (max-width: 639px) {
+  .tiptap-toolbar {
+    position: fixed;
+    bottom: 0;
+    top: auto;
+    width: 100%;
+    border-bottom: none;
+    border-top: 1px solid var(--tt-border-color);
+    border-radius: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 0.5rem;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tiptap-toolbar-group {
+      flex: 0 0 auto;
+    }
   }
 
-  .tiptap-toolbar {
-    padding: 0.375rem;
-    gap: 0.125rem;
+  /* Adjust content padding for mobile toolbar */
+  .simple-editor-content {
+    padding-bottom: var(--tt-mobile-toolbar-height);
+  }
+}
+
+/* Mobile toolbar variants */
+.mobile-toolbar-main,
+.mobile-toolbar-highlighter,
+.mobile-toolbar-link {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Back button in mobile */
+.mobile-toolbar-back-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  margin-right: 0.25rem;
+  border-radius: 0.375rem;
+  background-color: transparent;
+  color: var(--tt-theme-text);
+
+  svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+}
+
+/* Dropdown menus - Mobile optimized */
+.tiptap-dropdown-menu {
+  max-width: 90vw;
+  max-height: 50vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+
+  @media (min-width: 640px) {
+    max-width: 300px;
+    max-height: 400px;
+  }
+}
+
+/* Image upload button */
+.tiptap-image-upload {
+  input[type="file"] {
+    display: none;
+  }
+
+  .upload-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.375rem;
+    background-color: var(--tt-primary-color);
+    color: white;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    white-space: nowrap;
+
+    @media (min-width: 640px) {
+      padding: 0.375rem 1rem;
+    }
+
+    &:hover {
+      background-color: var(--tt-primary-hover);
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+
+    svg {
+      width: 1rem;
+      height: 1rem;
+    }
+  }
+}
+
+/* Color picker popover */
+.tiptap-color-popover {
+  position: fixed;
+  bottom: var(--tt-mobile-toolbar-height);
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background-color: var(--tt-bg-secondary);
+  border-top: 1px solid var(--tt-border-color);
+  padding: 1rem;
+  box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+
+  @media (min-width: 640px) {
+    position: absolute;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    border: 1px solid var(--tt-border-color);
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  .color-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+
+    @media (min-width: 640px) {
+      grid-template-columns: repeat(6, 1fr);
+    }
 
     button {
-      padding: 0.25rem;
+      aspect-ratio: 1;
+      border-radius: 0.375rem;
+      border: 2px solid transparent;
+
+      &.selected {
+        border-color: var(--tt-primary-color);
+      }
     }
   }
 }
 
-@media screen and (max-width: 480px) {
-  .simple-editor-content .tiptap.ProseMirror.simple-editor {
-    padding: 1rem 1.5rem 15vh;
+/* Link popover */
+.tiptap-link-popover {
+  position: fixed;
+  bottom: var(--tt-mobile-toolbar-height);
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background-color: var(--tt-bg-secondary);
+  border-top: 1px solid var(--tt-border-color);
+  padding: 1rem;
+
+  @media (min-width: 640px) {
+    position: absolute;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    border: 1px solid var(--tt-border-color);
+    border-radius: 0.5rem;
+    min-width: 300px;
   }
 
-  .simple-editor-content {
-    max-width: 100%;
-    padding: 0 1rem;
+  input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    background-color: var(--tt-bg-color);
+    border: 1px solid var(--tt-border-color);
+    border-radius: 0.375rem;
+    color: var(--tt-theme-text);
+    font-size: 1rem;
+
+    &:focus {
+      outline: none;
+      border-color: var(--tt-primary-color);
+    }
   }
 
-  /* Adjust typography for mobile */
-  .simple-editor-content .tiptap.ProseMirror {
-    h1 {
-      font-size: 2rem;
+  .link-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+
+    button {
+      flex: 1;
+      padding: 0.5rem;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+
+      &.save {
+        background-color: var(--tt-primary-color);
+        color: white;
+
+        &:hover {
+          background-color: var(--tt-primary-hover);
+        }
+      }
+
+      &.cancel {
+        background-color: transparent;
+        border: 1px solid var(--tt-border-color);
+
+        &:hover {
+          background-color: color-mix(
+            in srgb,
+            var(--tt-theme-text) 10%,
+            transparent
+          );
+        }
+      }
     }
-    h2 {
-      font-size: 1.75rem;
+  }
+}
+
+/* Loading state */
+.simple-editor-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 200px;
+
+  .spinner {
+    width: 2rem;
+    height: 2rem;
+    border: 3px solid var(--tt-border-color);
+    border-top-color: var(--tt-primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+
+    @media (min-width: 640px) {
+      width: 2.5rem;
+      height: 2.5rem;
     }
-    h3 {
-      font-size: 1.5rem;
-    }
-    h4 {
-      font-size: 1.25rem;
-    }
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
 /* Print styles */
 @media print {
+  .tiptap-toolbar {
+    display: none;
+  }
+
   .simple-editor-wrapper {
     border: none;
     box-shadow: none;
   }
 
-  .tiptap-toolbar {
-    display: none;
+  .tiptap.ProseMirror {
+    padding: 0;
+    max-width: 100%;
+  }
+}
+
+/* Safe area insets for modern mobile devices */
+@supports (padding: max(0px)) {
+  @media (max-width: 639px) {
+    .tiptap-toolbar {
+      padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+    }
+
+    .simple-editor-content {
+      padding-bottom: max(
+        var(--tt-mobile-toolbar-height),
+        env(safe-area-inset-bottom)
+      );
+    }
   }
 }

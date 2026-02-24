@@ -1,26 +1,28 @@
 "use client";
 
-import React, { useCallback, useRef } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { noteService } from "@/lib/notes";
 import api from "@/lib/axios";
 import dynamic from "next/dynamic";
-import { Pin, PinOff } from "lucide-react"; // Added for pinning UI
+import { Pin, PinOff, Save, Clock, MoreVertical } from "lucide-react";
 
 const SimpleEditor = dynamic(
-  () =>
-    import("@/components/tiptap-templates/simple/simple-editor").then(
-      (mod) => mod.SimpleEditor,
-    ),
+  () => import("@/components/tiptap-templates/simple/simple-editor").then(
+    (mod) => mod.SimpleEditor
+  ),
   {
     ssr: false,
     loading: () => (
-      <div className="p-4 sm:p-6 md:p-10 text-gray-400 animate-pulse text-sm sm:text-base">
-        Loading Advanced Editor...
+      <div className="h-full flex items-center justify-center">
+        <div className="space-y-3 text-center">
+          <div className="w-12 h-12 border-4 border-blue-200 dark:border-blue-900 border-t-blue-500 dark:border-t-blue-400 rounded-full animate-spin mx-auto" />
+          <p className="text-sm text-gray-400 dark:text-gray-500">Loading editor...</p>
+        </div>
       </div>
     ),
-  },
+  }
 );
 
 export default function NotePage() {
@@ -28,6 +30,7 @@ export default function NotePage() {
   const queryClient = useQueryClient();
   const noteId = Number(id);
   const saveTimerRef = useRef<NodeJS.Timeout>();
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   const { data: note, isLoading } = useQuery({
     queryKey: ["note", noteId],
@@ -38,7 +41,7 @@ export default function NotePage() {
   const mutation = useMutation({
     mutationFn: (updates: any) => noteService.update(noteId, updates),
     onSuccess: () => {
-      // Refresh both the specific note and the sidebar list to reflect pin/title changes
+      setLastSaved(new Date());
       queryClient.invalidateQueries({ queryKey: ["note", noteId] });
       queryClient.invalidateQueries({ queryKey: ["notes"] });
     },
@@ -53,73 +56,107 @@ export default function NotePage() {
         mutation.mutate({ content: html });
       }, 1000);
     },
-    [mutation],
+    [mutation]
   );
 
   const handleTitleChange = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
       mutation.mutate({ title: e.target.value });
     },
-    [mutation],
+    [mutation]
   );
 
-  // NEW: Pin Toggle Function
   const togglePin = useCallback(() => {
     mutation.mutate({ is_pinned: !note?.is_pinned });
   }, [mutation, note?.is_pinned]);
 
+  const formatLastSaved = () => {
+    if (!lastSaved) return null;
+    const now = new Date();
+    const diff = now.getTime() - lastSaved.getTime();
+    
+    if (diff < 60000) return 'Just now';
+    if (diff < 3600000) return `${Math.floor(diff / 60000)} minutes ago`;
+    return lastSaved.toLocaleTimeString();
+  };
+
   if (isLoading) {
     return (
-      <div className="p-4 sm:p-6 md:p-10 animate-pulse text-gray-400 text-base sm:text-lg md:text-xl">
-        Opening note...
+      <div className="flex-1 flex items-center justify-center bg-white dark:bg-gray-900">
+        <div className="space-y-4 text-center">
+          <div className="w-16 h-16 border-4 border-blue-200 dark:border-blue-900 border-t-blue-500 dark:border-t-blue-400 rounded-full animate-spin mx-auto" />
+          <p className="text-gray-500 dark:text-gray-400 animate-pulse">Opening your note...</p>
+        </div>
       </div>
     );
   }
 
   if (!note) {
     return (
-      <div className="p-4 sm:p-6 md:p-10 text-red-500 text-sm sm:text-base">
-        Note not found.
+      <div className="flex-1 flex items-center justify-center bg-white dark:bg-gray-900">
+        <div className="text-center p-8">
+          <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <PinOff size={32} className="text-red-500 dark:text-red-400" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
+            Note not found
+          </h3>
+          <p className="text-gray-500 dark:text-gray-400">
+            The note you're looking for doesn't exist or has been deleted.
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full w-full bg-white overflow-hidden">
-      {/* Header Area: Title + Pin Button */}
-      <div className="flex items-center justify-between px-4 sm:px-6 md:px-8 pt-4 sm:pt-6">
-        <input
-          type="text"
-          className="text-2xl sm:text-3xl md:text-4xl font-bold outline-none border-none w-full placeholder:text-gray-200 text-gray-800 bg-transparent"
-          defaultValue={note?.title}
-          onBlur={handleTitleChange}
-          placeholder="Note Title..."
-        />
+    <div className="flex flex-col h-full bg-white dark:bg-gray-900 transition-colors duration-200">
+      {/* Header */}
+      <div className="sticky top-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800 z-10">
+        <div className="flex items-center justify-between px-6 py-4">
+          {/* Title Input */}
+          <input
+            type="text"
+            className="text-2xl font-bold outline-none border-none w-full bg-transparent text-gray-800 dark:text-gray-200 placeholder-gray-300 dark:placeholder-gray-600"
+            defaultValue={note?.title}
+            onBlur={handleTitleChange}
+            placeholder="Untitled Note"
+          />
 
-        {/* PIN TOGGLE BUTTON */}
-        <button
-          onClick={togglePin}
-          className={`ml-4 p-2.5 sm:p-3 rounded-xl transition-all flex-shrink-0 ${
-            note.is_pinned
-              ? "bg-blue-50 text-blue-600 shadow-sm"
-              : "text-gray-300 hover:bg-gray-50 hover:text-gray-400"
-          }`}
-          title={note.is_pinned ? "Unpin Note" : "Pin Note"}
-        >
-          {note.is_pinned ? (
-            <Pin
-              size={22}
-              className="sm:w-[24px] sm:h-[24px]"
-              fill="currentColor"
-            />
-          ) : (
-            <PinOff size={22} className="sm:w-[24px] sm:h-[24px]" />
-          )}
-        </button>
+          <div className="flex items-center gap-2">
+            {/* Save Status */}
+            {lastSaved && (
+              <div className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500 mr-2">
+                <Save size={14} />
+                <span>Saved {formatLastSaved()}</span>
+              </div>
+            )}
+
+            {/* Pin Button */}
+            <button
+              onClick={togglePin}
+              className={`
+                p-2.5 rounded-xl transition-all
+                ${note.is_pinned
+                  ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 shadow-sm'
+                  : 'text-gray-300 dark:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-400 dark:hover:text-gray-400'
+                }
+              `}
+              title={note.is_pinned ? "Unpin note" : "Pin note"}
+            >
+              {note.is_pinned ? <Pin size={20} fill="currentColor" /> : <PinOff size={20} />}
+            </button>
+
+            {/* More Options (could be expanded later) */}
+            <button className="p-2.5 rounded-xl text-gray-300 dark:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-400 dark:hover:text-gray-400 transition-all">
+              <MoreVertical size={20} />
+            </button>
+          </div>
+        </div>
       </div>
-      <div className="h-2 sm:h-4" /> {/* Spacer */}
-      {/* Advanced Editor Area */}
-      <div className="flex-1 px-3 sm:px-4 md:px-6 lg:px-8 pb-3 sm:pb-4 md:pb-6 lg:pb-8 overflow-hidden">
+
+      {/* Editor */}
+      <div className="flex-1 overflow-hidden">
         <SimpleEditor
           key={noteId}
           initialContent={note?.content || ""}
