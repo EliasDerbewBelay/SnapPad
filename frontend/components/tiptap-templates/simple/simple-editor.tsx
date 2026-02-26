@@ -5,14 +5,12 @@ import { EditorContent, EditorContext, useEditor } from "@tiptap/react";
 
 // --- Tiptap Core Extensions ---
 import { StarterKit } from "@tiptap/starter-kit";
-import { Image } from "@tiptap/extension-image";
 import { TaskItem, TaskList } from "@tiptap/extension-list";
 import { TextAlign } from "@tiptap/extension-text-align";
 import { Typography } from "@tiptap/extension-typography";
 import { Highlight } from "@tiptap/extension-highlight";
 import { Subscript } from "@tiptap/extension-subscript";
 import { Superscript } from "@tiptap/extension-superscript";
-// import { Selection } from "@tiptap/extensions" // Removed to prevent potential missing export error
 
 // --- UI Primitives & Components ---
 import { Button } from "@/components/tiptap-ui-primitive/button";
@@ -22,12 +20,10 @@ import {
   ToolbarGroup,
   ToolbarSeparator,
 } from "@/components/tiptap-ui-primitive/toolbar";
-import { ImageUploadNode } from "@/components/tiptap-node/image-upload-node/image-upload-node-extension";
 import { HorizontalRule } from "@/components/tiptap-node/horizontal-rule-node/horizontal-rule-node-extension";
 
 // --- Tiptap UI ---
 import { HeadingDropdownMenu } from "@/components/tiptap-ui/heading-dropdown-menu";
-import { ImageUploadButton } from "@/components/tiptap-ui/image-upload-button";
 import { ListDropdownMenu } from "@/components/tiptap-ui/list-dropdown-menu";
 import { BlockquoteButton } from "@/components/tiptap-ui/blockquote-button";
 import { CodeBlockButton } from "@/components/tiptap-ui/code-block-button";
@@ -52,15 +48,12 @@ import { LinkIcon } from "@/components/tiptap-icons/link-icon";
 import { useIsBreakpoint } from "@/hooks/use-is-breakpoint";
 import { useWindowSize } from "@/hooks/use-window-size";
 import { useCursorVisibility } from "@/hooks/use-cursor-visibility";
-import { ThemeToggle } from "@/components/tiptap-templates/simple/theme-toggle";
-import { handleImageUpload, MAX_FILE_SIZE } from "@/lib/tiptap-utils";
 
 // --- Styles ---
 import "@/components/tiptap-node/blockquote-node/blockquote-node.scss";
 import "@/components/tiptap-node/code-block-node/code-block-node.scss";
 import "@/components/tiptap-node/horizontal-rule-node/horizontal-rule-node.scss";
 import "@/components/tiptap-node/list-node/list-node.scss";
-import "@/components/tiptap-node/image-node/image-node.scss";
 import "@/components/tiptap-node/heading-node/heading-node.scss";
 import "@/components/tiptap-node/paragraph-node/paragraph-node.scss";
 import "@/components/tiptap-templates/simple/simple-editor.scss";
@@ -118,15 +111,8 @@ const MainToolbarContent = ({
       <TextAlignButton align="right" />
       <TextAlignButton align="justify" />
     </ToolbarGroup>
-    <ToolbarSeparator />
-    <ToolbarGroup>
-      <ImageUploadButton text="Add" />
-    </ToolbarGroup>
     <Spacer />
     {isMobile && <ToolbarSeparator />}
-    <ToolbarGroup>
-      <ThemeToggle />
-    </ToolbarGroup>
   </>
 );
 
@@ -169,32 +155,27 @@ export function SimpleEditor({
         autocomplete: "off",
         autocorrect: "off",
         autocapitalize: "off",
-        // FIX: Added proper dark mode classes for text
         class:
           "simple-editor min-h-[500px] focus:outline-none prose prose-slate dark:prose-invert max-w-none text-gray-900 dark:text-gray-100",
       },
     },
     extensions: [
-      StarterKit.configure({ horizontalRule: false }),
+      StarterKit.configure({
+        horizontalRule: false,
+        image: false, // Explicitly disable image from StarterKit
+      }),
       HorizontalRule,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       TaskList,
       TaskItem.configure({ nested: true }),
       Highlight.configure({ multicolor: true }),
-      Image,
       Typography,
       Superscript,
       Subscript,
-      ImageUploadNode.configure({
-        accept: "image/*",
-        maxSize: MAX_FILE_SIZE,
-        limit: 3,
-        upload: handleImageUpload,
-      }),
     ],
     content: initialContent,
     onUpdate: ({ editor }) => {
-      onContentChange(editor.getHTML()); // Updates your DB
+      onContentChange(editor.getHTML());
     },
   });
 
@@ -213,12 +194,10 @@ export function SimpleEditor({
   if (!editor) return null;
 
   return (
-    // FIX: Added dark mode background and proper border colors
     <div className="simple-editor-wrapper border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm bg-white dark:bg-gray-900 overflow-hidden">
       <EditorContext.Provider value={{ editor }}>
         <Toolbar
           ref={toolbarRef}
-          // FIX: Added dark mode toolbar colors
           className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700"
           style={
             isMobile ? { bottom: `calc(100% - ${height - rect.y}px)` } : {}
@@ -238,7 +217,6 @@ export function SimpleEditor({
           )}
         </Toolbar>
 
-        {/* FIX: Added proper text colors for content area */}
         <EditorContent
           editor={editor}
           className="simple-editor-content p-8 text-gray-900 dark:text-gray-100 [&_h1]:text-gray-900 dark:[&_h1]:text-gray-100 [&_h2]:text-gray-900 dark:[&_h2]:text-gray-100 [&_h3]:text-gray-900 dark:[&_h3]:text-gray-100 [&_p]:text-gray-700 dark:[&_p]:text-gray-300 [&_li]:text-gray-700 dark:[&_li]:text-gray-300"

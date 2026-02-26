@@ -6,23 +6,26 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { noteService } from "@/lib/notes";
 import api from "@/lib/axios";
 import dynamic from "next/dynamic";
-import { Pin, PinOff, Save, Clock, MoreVertical } from "lucide-react";
+import { Pin, PinOff } from "lucide-react";
 
 const SimpleEditor = dynamic(
-  () => import("@/components/tiptap-templates/simple/simple-editor").then(
-    (mod) => mod.SimpleEditor
-  ),
+  () =>
+    import("@/components/tiptap-templates/simple/simple-editor").then(
+      (mod) => mod.SimpleEditor,
+    ),
   {
     ssr: false,
     loading: () => (
       <div className="h-full flex items-center justify-center">
         <div className="space-y-3 text-center">
           <div className="w-12 h-12 border-4 border-blue-200 dark:border-blue-900 border-t-blue-500 dark:border-t-blue-400 rounded-full animate-spin mx-auto" />
-          <p className="text-sm text-gray-400 dark:text-gray-500">Loading editor...</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500">
+            Loading editor...
+          </p>
         </div>
       </div>
     ),
-  }
+  },
 );
 
 export default function NotePage() {
@@ -56,36 +59,28 @@ export default function NotePage() {
         mutation.mutate({ content: html });
       }, 1000);
     },
-    [mutation]
+    [mutation],
   );
 
   const handleTitleChange = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
       mutation.mutate({ title: e.target.value });
     },
-    [mutation]
+    [mutation],
   );
 
   const togglePin = useCallback(() => {
     mutation.mutate({ is_pinned: !note?.is_pinned });
   }, [mutation, note?.is_pinned]);
 
-  const formatLastSaved = () => {
-    if (!lastSaved) return null;
-    const now = new Date();
-    const diff = now.getTime() - lastSaved.getTime();
-    
-    if (diff < 60000) return 'Just now';
-    if (diff < 3600000) return `${Math.floor(diff / 60000)} minutes ago`;
-    return lastSaved.toLocaleTimeString();
-  };
-
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center bg-white dark:bg-gray-900">
         <div className="space-y-4 text-center">
           <div className="w-16 h-16 border-4 border-blue-200 dark:border-blue-900 border-t-blue-500 dark:border-t-blue-400 rounded-full animate-spin mx-auto" />
-          <p className="text-gray-500 dark:text-gray-400 animate-pulse">Opening your note...</p>
+          <p className="text-gray-500 dark:text-gray-400 animate-pulse">
+            Opening your note...
+          </p>
         </div>
       </div>
     );
@@ -113,43 +108,38 @@ export default function NotePage() {
     <div className="flex flex-col h-full bg-white dark:bg-gray-900 transition-colors duration-200">
       {/* Header */}
       <div className="sticky top-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800 z-10">
-        <div className="flex items-center justify-between px-6 py-4">
-          {/* Title Input */}
+        <div className="flex items-center px-4 py-3 sm:px-6 sm:py-4">
+          {/* Spacer for hamburger on mobile */}
+          <div className="w-12 shrink-0 lg:hidden" />
+
+          {/* Title Input - Centered on mobile */}
           <input
             type="text"
-            className="text-2xl font-bold outline-none border-none w-full bg-transparent text-gray-800 dark:text-gray-200 placeholder-gray-300 dark:placeholder-gray-600"
+            className="text-lg sm:text-2xl font-bold outline-none border-none flex-grow bg-transparent text-gray-800 dark:text-gray-200 placeholder-gray-300 dark:placeholder-gray-600 text-center lg:text-left"
             defaultValue={note?.title}
             onBlur={handleTitleChange}
             placeholder="Untitled Note"
           />
 
-          <div className="flex items-center gap-2">
-            {/* Save Status */}
-            {lastSaved && (
-              <div className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500 mr-2">
-                <Save size={14} />
-                <span>Saved {formatLastSaved()}</span>
-              </div>
-            )}
-
+          <div className="flex items-center gap-1 sm:gap-2">
             {/* Pin Button */}
             <button
               onClick={togglePin}
               className={`
-                p-2.5 rounded-xl transition-all
-                ${note.is_pinned
-                  ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 shadow-sm'
-                  : 'text-gray-300 dark:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-400 dark:hover:text-gray-400'
+                p-2 sm:p-2.5 rounded-xl transition-all
+                ${
+                  note.is_pinned
+                    ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 shadow-sm"
+                    : "text-gray-300 dark:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-400 dark:hover:text-gray-400"
                 }
               `}
               title={note.is_pinned ? "Unpin note" : "Pin note"}
             >
-              {note.is_pinned ? <Pin size={20} fill="currentColor" /> : <PinOff size={20} />}
-            </button>
-
-            {/* More Options (could be expanded later) */}
-            <button className="p-2.5 rounded-xl text-gray-300 dark:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-400 dark:hover:text-gray-400 transition-all">
-              <MoreVertical size={20} />
+              {note.is_pinned ? (
+                <Pin size={20} fill="currentColor" />
+              ) : (
+                <PinOff size={20} />
+              )}
             </button>
           </div>
         </div>
